@@ -1,0 +1,11 @@
+import {build} from 'esbuild';
+import {mkdir,cp,writeFile} from 'node:fs/promises';
+await mkdir('public/ocr',{recursive:true});
+await cp('node_modules/tesseract.js/dist/tesseract.min.js','public/ocr/tesseract.min.js');
+await cp('node_modules/tesseract.js/dist/worker.min.js','public/ocr/worker.min.js');
+for(const file of ['tesseract-core-lstm.wasm.js','tesseract-core-simd-lstm.wasm.js','tesseract-core-simd.wasm.js','tesseract-core.wasm.js'])await cp('node_modules/tesseract.js-core/'+file,'public/ocr/'+file);
+await cp('node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz','public/ocr/eng.traineddata.gz');
+await mkdir('dist/server',{recursive:true});await cp('public','dist/client',{recursive:true});
+await build({entryPoints:['worker.js'],outfile:'dist/server/index.js',bundle:true,format:'esm',platform:'browser',target:'es2022'});
+await writeFile('dist/client/_routes.json',JSON.stringify({version:1,include:['/*'],exclude:[]}));
+await writeFile('dist/server/wrangler.json',JSON.stringify({name:'renovation-tracker',main:'index.js',compatibility_date:'2026-10-01',assets:{directory:'../client',binding:'ASSETS',run_worker_first:true},d1_databases:[{binding:'DB',database_name:'renovation-tracker',database_id:'00000000-0000-0000-0000-000000000000',migrations_dir:'../../drizzle'}],r2_buckets:[{binding:'BUCKET',bucket_name:'renovation-receipts'}]},null,2));
