@@ -2,7 +2,7 @@ import {sampleState} from './domain.js';
 import {applyAction,publicState} from './actions.js';
 import {extractReceipt} from './receipt.js';
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
-export async function handleApi(request,storage,{local=false,origin}={}) {
+export async function handleApi(request,storage,{local=false,origin,ownerEmail}={}) {
  try {
  const url=new URL(request.url);
  if(!['GET','POST'].includes(request.method))return json({error:'Method not allowed'},405);
@@ -11,12 +11,19 @@ export async function handleApi(request,storage,{local=false,origin}={}) {
  if(local&&!email)email='alex@renovation.example';
  if(!email)return json({error:'Sign in to access this renovation.'},401);
  email=email.toLowerCase();
+ const configuredOwner=ownerEmail?.trim().toLowerCase();
+ if(!local&&!configuredOwner)return json({error:'Project owner setup is unavailable. Please contact the Site owner.'},503);
  let record=await storage.read();
  if(!record) {
+ if(configuredOwner&&email!==configuredOwner)return json({error:'The project owner must open this renovation first.'},403);
  const state=structuredClone(sampleState); const owner=state.members.find(m=>m.role.toLowerCase()==='owner'); owner.email=email;owner.authId=uid||'local-owner';
  await storage.init(state); record=await storage.read();
  }
  let state=record.state;
+ if(configuredOwner){
+ const owner=state.members.find(m=>m.role.toLowerCase()==='owner');
+ if(owner&&owner.email.toLowerCase()!==configuredOwner){owner.email=configuredOwner;delete owner.authId;await storage.save(state,record.revision);record=await storage.read();state=record.state;}
+ }
  let user=state.members.find(m=>m.email.toLowerCase()===email);
  if(!user){
  const invitation=state.invitations.find(i=>i.email.toLowerCase()===email&&!['revoked','accepted'].includes(i.status));
@@ -24,6 +31,7 @@ export async function handleApi(request,storage,{local=false,origin}={}) {
  user={id:crypto.randomUUID(),name:email.split('@')[0],email,role:invitation.role,contractorId:invitation.contractorId};state.members.push(user);invitation.status='accepted';
  await storage.save(state,record.revision);record=await storage.read();state=record.state;
  }
+ if(user.role.toLowerCase()==='owner'&&configuredOwner===email&&uid&&user.authId!==uid){user.authId=uid;await storage.save(state,record.revision);record=await storage.read();state=record.state;user=state.members.find(m=>m.id===user.id);}
  const demo=request.headers.get('x-demo-role')||url.searchParams.get('demo');
  if(demo){
  if(user.role.toLowerCase()!=='owner')return json({error:'Only the owner can preview sample roles.'},403);

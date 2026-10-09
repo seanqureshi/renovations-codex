@@ -13,7 +13,7 @@ export default {async fetch(request,env){
  async putFile(key,file){await env.BUCKET.put(key,await file.arrayBuffer(),{httpMetadata:{contentType:file.type}});},
  async getFile(key){const file=await env.BUCKET.get(key);return file?{body:file.body,type:file.httpMetadata.contentType}:null;}
  };
- return handleApi(request,storage);
+ return handleApi(request,storage,{ownerEmail:env.RENOVATION_OWNER_EMAIL});
  }
  return env.ASSETS.fetch(request);
 }};
