@@ -10,7 +10,7 @@ export async function handleApi(request,storage,{local=false,origin,ownerEmail}=
  let email=request.headers.get('oai-authenticated-user-email'); const uid=request.headers.get('oai-authenticated-user-id');
  if(local&&!email)email='alex@renovation.example';
  if(!email)return json({error:'Sign in to access this renovation.'},401);
- email=email.toLowerCase();
+ email=email.trim().toLowerCase();
  const configuredOwner=ownerEmail?.trim().toLowerCase();
  if(!local&&!configuredOwner)return json({error:'Project owner setup is unavailable. Please contact the Site owner.'},503);
  let record=await storage.read();
@@ -27,7 +27,7 @@ export async function handleApi(request,storage,{local=false,origin,ownerEmail}=
  let user=state.members.find(m=>m.email.toLowerCase()===email);
  if(!user){
  const invitation=state.invitations.find(i=>i.email.toLowerCase()===email&&!['revoked','accepted'].includes(i.status));
- if(!invitation)return json({error:'Your email has not been invited to this project.'},403);
+ if(!invitation)return json({error:'This signed-in account does not have access to the renovation.',signedInEmail:email,signInUrl:'/signin-with-chatgpt?return_to=/'},403);
  user={id:crypto.randomUUID(),name:email.split('@')[0],email,role:invitation.role,contractorId:invitation.contractorId};state.members.push(user);invitation.status='accepted';
  await storage.save(state,record.revision);record=await storage.read();state=record.state;
  }
