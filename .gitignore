@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.data/
+.env
+*.tar.gz
+public/ocr/
+*.png
+!public/kitchen.png
+!tests/receipt.png
