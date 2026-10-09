@@ -3,7 +3,8 @@ export default {async fetch(request,env){
  const url=new URL(request.url);
  if(!request.headers.get('oai-authenticated-user-email')){
  if(url.pathname.startsWith('/api/'))return new Response(JSON.stringify({error:'Sign in to access your renovation.'}),{status:401,headers:{'content-type':'application/json'}});
- return Response.redirect(url.origin+'/signin-with-chatgpt?return_to='+encodeURIComponent(url.pathname+url.search),302);
+ if(url.pathname!=='/'&&!request.headers.get('accept')?.includes('text/html'))return env.ASSETS.fetch(request);
+ return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Renovation Tracker</title></head><body style="margin:0;background:#f4f7fc;color:#15283f;font:16px/1.6 system-ui"><main style="max-width:480px;margin:12vh auto;padding:32px"><h1>Renovation Tracker</h1><p>Sign in to open your private renovation workspace.</p><p><a href="/signin-with-chatgpt?return_to=/" target="_top" style="display:inline-block;background:#2463eb;color:white;padding:12px 20px;border-radius:8px;text-decoration:none">Sign in with ChatGPT</a></p><p>If the embedded browser cannot complete sign-in, open this project in Chrome using the same ChatGPT account.</p></main></body></html>`,{headers:{'content-type':'text/html;charset=UTF-8','cache-control':'no-store'}});
  }
  if(url.pathname.startsWith('/api/')){
  const storage={
