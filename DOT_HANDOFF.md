@@ -8,7 +8,7 @@ Ask the user before sending contractor messages, approving any actual spending, 
 
 ## Implementation and verification
 
-Source: /workspace/renovations-codex. App: vanilla JS UI, Node local server, Cloudflare Worker production API, D1 workspace records, R2 receipt files. Site project ID is preserved in .openai/hosting.json. Owner identity is configured privately through RENOVATION_OWNER_EMAIL in Sites; do not put its value or credentials into source or handoff notes.
+Source: https://github.com/seanqureshi/renovations-codex (repository root). App: vanilla JS UI, Node local server, Cloudflare Worker production API, D1 workspace records, R2 receipt files. Site project ID is preserved in .openai/hosting.json. Owner identity is configured privately through RENOVATION_OWNER_EMAIL in Sites; do not put its value or credentials into source or handoff notes.
 
 Run npm test and npm run build. Tests cover budgets, quote payment offsets, role filtering, dependencies, project archives, invitations, receipt confirmation, configured owner recovery and embedded sign-in behavior. tests/browser.mjs and tests/receipt-browser.mjs exercise local flows with system Chromium. Use isolated DATA_DIR for any tests that modify data. Recheck current production logs when diagnosing user-reported failures. The existing browser tests do not establish real ChatGPT compatibility.
 
